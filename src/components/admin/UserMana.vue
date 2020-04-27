@@ -1,8 +1,18 @@
+<style type="text/css">
+.blog_table_footer {
+  display: flex;
+  box-sizing: content-box;
+  padding-top: 10px;
+  padding-bottom: 0px;
+  margin-bottom: 0px;
+  justify-content: space-between;
+}
+</style>
 <template>
   <div v-loading="loading">
     <div style="margin-top: 10px;display: flex;justify-content: center">
       <el-input
-        placeholder="默认展示部分用户，可以通过用户名搜索用户..."
+        placeholder="默认展示部分用户，可以通过邮箱搜索用户..."
         prefix-icon="el-icon-search"
         v-model="keywords"
         style="width: 400px"
@@ -20,7 +30,7 @@
     <div style="display: flex;justify-content: space-around;flex-wrap: wrap">
       <el-card
         style="width:330px;margin-top: 10px;"
-        v-for="(user, index) in users"
+        v-for="(user, index) in displayData"
         :key="index"
         v-loading="cardloading[index]"
       >
@@ -120,6 +130,17 @@
         </div>
       </el-card>
     </div>
+    <div class="blog_table_footer">
+      <span></span>
+      <el-pagination
+        background
+        :page-size="pageSize"
+        layout="prev, pager, next"
+        :total="this.users.length"
+        @current-change="currentChange"
+        v-show="this.users.length > 0"
+      ></el-pagination>
+    </div>
   </div>
 </template>
 <script>
@@ -138,6 +159,28 @@ export default {
     });
   },
   methods: {
+    //翻页
+    currentChange(currentPage) {
+      this.currentPage = currentPage;
+      this.tableList();
+    },
+    // 实现前端分页效果
+    // 计算当前页面的数据
+    tableList() {
+      // this.displayData是当前页面要显示的数据
+      this.displayData = [];
+      for (
+        // pageSize是当前页面要显示总条数，例如：每页显示20条；currentPage是当前页面数;
+        var j = this.pageSize * (this.currentPage - 1);
+        j < this.pageSize * this.currentPage;
+        j++
+      ) {
+        // this.users是总数据;
+        if (this.users[j]) {
+          this.displayData.push(this.users[j]);
+        }
+      }
+    },
     saveRoles(id, index) {
       var selRoles = this.roles;
       if (this.cpRoles.length == selRoles.length) {
@@ -156,7 +199,7 @@ export default {
       var _this = this;
       _this.cardloading.splice(index, 1, true);
       putRequest("/admin/user/role", { rids: this.roles, id: id }).then(
-        resp => {
+        (resp) => {
           if (resp.status == 200 && resp.data.status == "success") {
             _this.$message({ type: resp.data.status, message: resp.data.msg });
             _this.loadOneUserById(id, index);
@@ -165,7 +208,7 @@ export default {
             _this.$message({ type: "error", message: "更新失败!" });
           }
         },
-        resp => {
+        (resp) => {
           _this.cardloading.splice(index, 1, false);
           if (resp.response.status == 403) {
             var data = resp.response.data;
@@ -187,13 +230,13 @@ export default {
       this.$confirm("删除该用户, 是否继续?", "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
-        type: "warning"
+        type: "warning",
       })
         .then(() => {
           _this.loading = true;
-          deleteRequest("/admin/user/" + id).then(
-            resp => {
-              if (resp.status == 200 && resp.data.status == "success") {
+          deleteRequest("/admin/deleteUser/" + id).then(
+            (resp) => {
+              if (resp.status == 200) {
                 _this.$message({ type: "success", message: "删除成功!" });
                 _this.loadUserList();
                 return;
@@ -201,7 +244,7 @@ export default {
               _this.loading = false;
               _this.$message({ type: "error", message: "删除失败!" });
             },
-            resp => {
+            (resp) => {
               _this.loading = false;
               _this.$message({ type: "error", message: "删除失败!" });
             }
@@ -210,15 +253,15 @@ export default {
         .catch(() => {
           _this.$message({
             type: "info",
-            message: "已取消删除"
+            message: "已取消删除",
           });
         });
     },
     enabledChange(enabled, id, index) {
       var _this = this;
       _this.cardloading.splice(index, 1, true);
-      putRequest("/admin/user/enabled", { enabled: enabled, uid: id }).then(
-        resp => {
+      putRequest("/admin/enableUser?enable=" + enabled + "&id=" + id).then(
+        (resp) => {
           if (resp.status != 200) {
             _this.$message({ type: "error", message: "更新失败!" });
             _this.loadOneUserById(id, index);
@@ -227,7 +270,7 @@ export default {
           _this.cardloading.splice(index, 1, false);
           _this.$message({ type: "success", message: "更新成功!" });
         },
-        resp => {
+        (resp) => {
           _this.$message({ type: "error", message: "更新失败!" });
           _this.loadOneUserById(id, index);
         }
@@ -237,7 +280,7 @@ export default {
       var _this = this;
       _this.eploading.splice(index, 1, true);
       getRequest("/admin/roles").then(
-        resp => {
+        (resp) => {
           _this.eploading.splice(index, 1, false);
           if (resp.status == 200) {
             _this.allRoles = resp.data;
@@ -245,7 +288,7 @@ export default {
             _this.$message({ type: "error", message: "数据加载失败!" });
           }
         },
-        resp => {
+        (resp) => {
           _this.eploading.splice(index, 1, false);
           if (resp.response.status == 403) {
             var data = resp.response.data;
@@ -257,7 +300,7 @@ export default {
     loadOneUserById(id, index) {
       var _this = this;
       getRequest("/admin/user/" + id).then(
-        resp => {
+        (resp) => {
           _this.cardloading.splice(index, 1, false);
           if (resp.status == 200) {
             _this.users.splice(index, 1, resp.data);
@@ -265,7 +308,7 @@ export default {
             _this.$message({ type: "error", message: "数据加载失败!" });
           }
         },
-        resp => {
+        (resp) => {
           _this.cardloading.splice(index, 1, false);
           if (resp.response.status == 403) {
             var data = resp.response.data;
@@ -278,8 +321,8 @@ export default {
       var _this = this;
       _this.users = [];
       _this.loading = false;
-      getRequest("/admin/queryAllUsers").then(
-        resp => {
+      getRequest("/admin/queryAllUsers?email=" + _this.keywords).then(
+        (resp) => {
           _this.loading = false;
           if (resp.status == 200) {
             let userList = resp.data;
@@ -290,8 +333,8 @@ export default {
               frontuser.score = user.score;
               frontuser.userface = user.picture;
               frontuser.email = user.email;
-              frontuser.regTime = new Date();
-              frontuser.enabled = true;
+              frontuser.regTime = user.registerDate;
+              frontuser.enabled = user.enable;
               let roles = [];
               let role = {};
               role.name = user.type;
@@ -299,13 +342,14 @@ export default {
               roles.push(role);
               frontuser.roles = roles;
               _this.users.push(frontuser);
-              console.log(_this.users);
+              // 分页
+              _this.tableList();
             }
           } else {
             _this.$message({ type: "error", message: "数据加载失败!" });
           }
         },
-        resp => {
+        (resp) => {
           _this.loading = false;
           if (resp.response.status == 403) {
             var data = resp.response.data;
@@ -317,7 +361,7 @@ export default {
     searchClick() {
       this.loading = true;
       this.loadUserList();
-    }
+    },
   },
   data() {
     return {
@@ -328,8 +372,11 @@ export default {
       users: [],
       allRoles: [],
       roles: [],
-      cpRoles: []
+      cpRoles: [],
+      currentPage: 1,
+      pageSize: 6,
+      displayData: [],
     };
-  }
+  },
 };
 </script>

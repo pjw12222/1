@@ -4,19 +4,6 @@
       <div class="text item">面霸排行榜</div>
     </el-card>
     <el-row :gutter="20">
-      <!-- <el-col :span="16" v-for="o in this.child" :key="o.displayRank">
-        <el-card class="box-card" v-if="msg">
-          <h3>{{ o.metadata.legend_name }}</h3>
-          <div class="tuwen">
-            <img :src="o.metadata.icon" class="image" />
-            <div class="legend_card">
-              <div>积分：{{ o.score }}</div>
-              <div>排名：{{ o.displayRank }}</div>
-              <div>超过{{ o.percentile }}%用户</div>
-            </div>
-          </div>
-        </el-card>
-      </el-col> -->
       <el-col :span="16" v-for="o in this.users" :key="o.id">
         <el-card class="box-card" v-if="msg">
           <h3>{{ o.nickname }}</h3>

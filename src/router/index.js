@@ -8,7 +8,7 @@ import CateMana from "@/components/admin/CateMana";
 import DataCharts from "@/components/admin/DataCharts";
 import PostShare from "@/components/common/PostShare";
 import UserMana from "@/components/admin/UserMana";
-import ResumeDetail from "@/components/common/ResumeDetail";
+import ModalDetail from "@/components/common/ModalDetail";
 import ResumeHome from "@/components/common/postresume/view/ResumeHome";
 import ShareDetail from "@/components/common/ShareDetail";
 import ShareList from "@/components/common/ShareList";
@@ -74,7 +74,7 @@ export default new Router({
         },
         {
           path: "/postArticle",
-          name: "发表简历",
+          name: "在线发布",
           // component: PostShare,
           redirect: "/base",
           component: ResumeHome,
@@ -106,12 +106,12 @@ export default new Router({
           hidden: true
         },
         {
-          path: "/resumeDetail",
-          name: "简历详情",
-          component: ResumeDetail,
+          path: "/modalDetail",
+          name: "模板管理",
+          component: ModalDetail,
           //hidden: true,
           meta: {
-            keepAlive: false
+            keepAlive: true,
           }
         }
       ]
@@ -225,7 +225,7 @@ export default new Router({
         },
         {
           path: "/adminPostArticle",
-          name: "发表简历",
+          name: "在线发布",
           // component: PostShare,
           redirect: "/adminBase",
           component: ResumeHome,
@@ -265,9 +265,9 @@ export default new Router({
             hidden: true,
         },
         {
-          path: "/adminResumeDetail",
-          name: "简历详情",
-          component: ResumeDetail,
+          path: "/adminModalDetail",
+          name: "模板管理",
+          component: ModalDetail,
           //hidden: true,
           meta: {
             keepAlive: false

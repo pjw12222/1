@@ -1,4 +1,12 @@
-import Vue from 'vue'
+/*
+ * @Author: your name
+ * @Date: 2020-03-13 16:56:04
+ * @LastEditTime: 2020-04-16 09:13:18
+ * @LastEditors: your name
+ * @Description: In User Settings Edit
+ * @FilePath: \vue-smartresume-master\src\utils\filter_utils.js
+ */
+import Vue from "vue";
 Vue.filter("formatDate", function formatDate(value) {
   var date = new Date(value);
   var year = date.getFullYear();
@@ -25,6 +33,11 @@ Vue.filter("formatDateTime", function formatDateTime(value) {
   if (day < 10) {
     day = "0" + day;
   }
+  if (hours < 10) {
+    hours = "0" + hours;
+  }
+  if (minutes < 10) {
+    minutes = "0" + minutes;
+  }
   return year + "-" + month + "-" + day + " " + hours + ":" + minutes;
 });
-

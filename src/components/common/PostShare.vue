@@ -10,7 +10,7 @@
           v-for="item in categories"
           :key="item.id"
           :label="item.content"
-          :value="item.content"
+          :value="item.id"
         >
         </el-option>
       </el-select>
@@ -195,10 +195,7 @@ export default {
     },
     getUserId() {
       let _this = this;
-      let email = localStorage.getItem("email");
-      getRequest("/user/queryUserIdByEmail?email=" + email).then(resp => {
-        _this.userId = resp.data.data;
-      });
+      _this.userId = localStorage.getItem("userId");    
     },
     handleClose(tag) {
       this.article.dynamicTags.splice(this.article.dynamicTags.indexOf(tag), 1);

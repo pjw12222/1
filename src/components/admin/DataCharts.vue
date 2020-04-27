@@ -1,89 +1,98 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-13 16:55:03
- * @LastEditTime: 2020-03-31 16:12:29
+ * @LastEditTime: 2020-04-26 11:00:51
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \vue-smartresume-master\src\components\DataCharts.vue
  -->
 <template>
   <div
-    style="display: flex;height: 500px;width: 100%;align-items: center;justify-content: center;">
-    <!-- <chart ref="dschart" :options="polar" style="margin-top: 20px"></chart> -->
-  </div>
+    id="main"
+    style="display: flex;height: 500px;width: 100%;align-items: center;justify-content: center;"
+  ></div>
 </template>
 
-<style>
-</style>
+<style></style>
 <script>
-  // import ECharts from 'vue-echarts/components/ECharts.vue'
-  // import 'echarts/lib/chart/line'
-  // import 'echarts/lib/component/tooltip'
-
-  // import 'echarts/lib/component/polar'
-
-  // import 'echarts/lib/component/legend'
-  // import 'echarts/lib/component/title'
-  // import 'echarts/theme/dark'
-  // import 'echarts/lib/chart/bar'
-
-  // import {getRequest} from '../../utils/api'
-  // export default{
-  //   components: {
-  //     'chart': ECharts
-  //   },
-  //   mounted: function () {
-  //     var _this = this;
-  //     getRequest("/article/dataStatistics").then(resp=> {
-  //       if (resp.status == 200) {
-  //         _this.$refs.dschart.options.xAxis.data = resp.data.categories;
-  //         _this.$refs.dschart.options.series[0].data = resp.data.ds;
-  //       } else {
-  //         _this.$message({type: 'error', message: '数据加载失败!'});
-  //       }
-  //     }, resp=> {
-  //       _this.$message({type: 'error', message: '数据加载失败!'});
-  //     });
-  //   },
-  //   methods: {},
-  //   data: function () {
-  //     return {
-  //       polar: {
-  //         title: {
-  //           text: ''
-  //         },
-  //         toolbox: {
-  //           show: true,
-  //           feature: {
-  //             dataZoom: {
-  //               yAxisIndex: 'none'
-  //             },
-  //             dataView: {
-  //               readOnly: false
-  //             },
-  //             magicType: {
-  //               type: ['line', 'bar']
-  //             },
-  //             restore: {},
-  //             saveAsImage: {}
-  //           }
-  //         },
-  //         tooltip: {},
-  //         legend: {
-  //           data: ['pv']
-  //         },
-  //         xAxis: {
-  //           data: []
-  //         },
-  //         yAxis: {},
-  //         series: [{
-  //           name: 'pv',
-  //           type: 'line',
-  //           data: []
-  //         }],
-  //         animationDuration: 3000
-  //       }
-  //     }
-  //   }
-  // }
+import { getRequest } from "../../utils/api";
+import echarts from "echarts";
+export default {
+  name: "",
+  data() {
+    return {
+      charts: "",
+      opinion: [],
+      opinionData: [],
+      //opinion: ["腾讯","华为","阿里巴巴"],
+      //opinionData: [{"name":"腾讯","value":5},{"name":"华为","value":4},{"name":"阿里巴巴","value":5}],
+    };
+  },
+  methods: {
+    drawPie(id) {
+      this.charts = echarts.init(document.getElementById(id));
+    },
+    initData() {
+      getRequest("/community/getReportHead").then((resp) => {
+        this.opinion = resp.data.titles;
+        let datas = [];
+        for (let data of resp.data.data) {
+          let o = {};
+          o.value = data.nums;
+          o.name = data.content;
+          datas.push(o);
+        }
+        this.opinionData = datas;
+        console.log(this.opinionData);
+        this.charts.setOption({
+          title: {
+            text: "简历攻略分类统计图",
+            left: "center",
+          },
+          tooltip: {
+            trigger: "item",
+            formatter: "{a}<br/>{b}:{c} ({d}%)",
+          },
+          legend: {
+            orient: "vertical",
+            x: "left",
+            data: this.opinion,
+          },
+          series: [
+            {
+              name: "帖子分类",
+              type: "pie",
+              radius: ["50%", "70%"],
+              avoidLabelOverlap: false,
+              label: {
+                normal: {
+                  show: false,
+                  position: "center",
+                },
+                emphasis: {
+                  show: true,
+                  textStyle: {
+                    fontSize: "30",
+                    fontWeight: "blod",
+                  },
+                },
+              },
+              labelLine: {
+                normal: {
+                  show: false,
+                },
+              },
+              data: this.opinionData,
+            },
+          ],
+        });
+      });
+    },
+  },
+  //调用
+  mounted() {
+    this.initData();
+    this.drawPie("main");
+  },
+};
 </script>

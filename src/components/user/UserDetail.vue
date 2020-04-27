@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2020-03-19 14:24:27
- * @LastEditTime: 2020-04-06 17:03:50
+ * @LastEditTime: 2020-04-11 20:31:17
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \vue-smartresume-master\src\components\User\UserDetail.vue
@@ -81,6 +81,7 @@
               </el-form-item>
               <el-form-item
                 label="电话"
+                placeholder="请输入电话"
                 prop="phone"
                 :label-width="formLabelWidth"
               >
@@ -137,7 +138,13 @@
                 :label-width="formLabelWidth"
               >
                 <el-col :span="8">
-                  <el-input v-model="userlist.birthday"></el-input>
+                  <!-- <el-input v-model="userlist.birthday"></el-input> -->
+                  <el-date-picker
+                    v-model="userlist.birthday"
+                    type="date"
+                    placeholder="选择日期"
+                  >
+                  </el-date-picker>
                 </el-col>
               </el-form-item>
               <el-form-item
@@ -239,12 +246,26 @@
           src="../../assets/img/modal1.png"
           alt="金牌勋章"
           style="width:300px;height:225px; -webkit-filter: grayscale(100%); "
+          v-if="!modals.金牌勋章"
+        />
+        <img
+          src="../../assets/img/modal1.png"
+          alt="金牌勋章"
+          style="width:300px;height:225px;"
+          v-else
         />
       </div>
       <div>
         <img
           src="../../assets/img/modal2.png"
           alt="银牌勋章"
+          v-if="!modals.银牌勋章"
+          style="width:300px;height:225px; -webkit-filter: grayscale(100%);"
+        />
+        <img
+          src="../../assets/img/modal2.png"
+          alt="银牌勋章"
+          v-else
           style="width:300px;height:225px"
         />
       </div>
@@ -252,7 +273,14 @@
         <img
           src="../../assets/img/modal3.png"
           alt="铜牌勋章"
-          style="width:300px;height:225px"
+          v-if="!modals.铜牌勋章"
+          style="width:300px;height:225px; -webkit-filter: grayscale(100%);"
+        />
+        <img
+          src="../../assets/img/modal3.png"
+          alt="铜牌勋章"
+          v-else
+          style="width:300px;height:225px;"
         />
       </div>
     </div>
@@ -266,9 +294,10 @@ import { getBase64 } from "../../utils/utils";
 import { concatGetUrl } from "../../utils/utils";
 import { getRequest } from "../../utils/api";
 import { postRequest } from "../../utils/api";
+import { formatDate } from "../../utils/utils";
 export default {
   components: {
-    user_rank: UserRank
+    user_rank: UserRank,
   },
   data() {
     /*****检验两次密码是否一致***/
@@ -301,52 +330,51 @@ export default {
       formLabelWidth: "150px",
       reflesh: false,
       currentEmail: "",
+      modals: {},
       /***校验***/
       rules: {
         phone: [
           {
             required: true,
-            message: "请输入电话号码"
-          }
-          // ,
-          // {
-          //   pattern: /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/,
-          //   message: "手机格式不对"
-          // }
+            message: "请输入电话号码",
+          },
+          {
+            pattern: /^(13[0-9]|14[5|7]|15[0|1|2|3|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\d{8}$/,
+            message: "手机格式不对",
+          },
         ],
         email: [
           {
             required: true,
-            message: "请输入电子邮箱"
-          }
-          // ,
-          // {
-          //   pattern: /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/,
-          //   message: "请输入有效的邮箱"
-          // }
+            message: "请输入电子邮箱",
+          },
+          {
+            pattern: /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/,
+            message: "请输入有效的邮箱",
+          },
         ],
 
         pass: [
           {
             required: true,
             trigger: "blur",
-            message: "请输入密码"
-          }
+            message: "请输入密码",
+          },
         ],
 
         newpass: [
           {
             validator: validatePass,
-            trigger: "blur"
-          }
+            trigger: "blur",
+          },
         ],
         checknewpass: [
           {
             validator: validatePass2,
-            trigger: "blur"
-          }
-        ]
-      }
+            trigger: "blur",
+          },
+        ],
+      },
     };
   },
   created() {
@@ -363,13 +391,19 @@ export default {
       let type = localStorage.getItem("type");
       getRequest(
         "/user/queryUserByPrimary?email=" + this.currentEmail + "&type=" + type
-      ).then(resp => {
+      ).then((resp) => {
         if (resp.status == 200) {
           console.log(resp.data);
           this.userlist = resp.data;
           console.log(this.userlist);
         }
       });
+      getRequest("/user/queryUserModal/" + localStorage.getItem("userId")).then(
+        (resp) => {
+          this.modals = resp.data;
+          console.log(this.modals);
+        }
+      );
     },
     //tab切换
     handleClick(tab, event) {
@@ -382,7 +416,7 @@ export default {
     },
     //上传图片
     uploadFile(file) {
-      getBase64(file.raw).then(res => {
+      getBase64(file.raw).then((res) => {
         this.userlist.picture = res;
         console.log(res);
         //实现图片的实时刷新
@@ -394,30 +428,30 @@ export default {
     handleUpSuccess() {},
     //修改密码
     submitForm(ruleForm) {
-      this.$refs.ruleForm.validate(valid => {
+      this.$refs.ruleForm.validate((valid) => {
         if (valid) {
           var obj = {
             email: this.currentEmail,
             oldPwd: this.ruleForm.pass,
             newPwd: this.ruleForm.newpass,
-            type: localStorage.getItem("type")
+            type: localStorage.getItem("type"),
           };
           //保存信息
           var url = concatGetUrl(obj, "/user/updateUserPass");
           console.log(url);
-          getRequest(url).then(resp => {
+          getRequest(url).then((resp) => {
             if (resp.status == 200) {
               if (resp.data.data == "true") {
                 this.$message({
                   message: "修改成功",
                   duration: 1500,
-                  type: "success"
+                  type: "success",
                 });
               } else {
                 this.$message({
                   message: "输入的旧密码错误",
                   duration: 1500,
-                  type: "error"
+                  type: "error",
                 });
               }
             } else {
@@ -429,26 +463,27 @@ export default {
     },
     // 编辑提交的方法
     EditorUserClick() {
-      this.$refs.EditorUserForms.validate(valid => {
+      this.$refs.EditorUserForms.validate((valid) => {
         if (valid) {
+          this.userlist.birthday = formatDate(this.userlist.birthday);
           console.log(this.userlist);
           //保存信息
           postRequest(
             "/user/updateUserInfo",
             JSON.stringify(this.userlist)
-          ).then(resp => {
+          ).then((resp) => {
             if (resp.status == 200) {
               this.$message({
                 message: "修改成功",
                 duration: 1500,
-                type: "success"
+                type: "success",
               });
               this.$router.go(-1);
             } else {
               this.$message({
                 message: "修改失败",
                 duration: 1500,
-                type: "error"
+                type: "error",
               });
             }
           });
@@ -456,12 +491,12 @@ export default {
           this.$message({
             message: "请检查输入的用户信息",
             duration: 1000,
-            type: "warning"
+            type: "warning",
           });
         }
       });
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -513,5 +548,8 @@ div /deep/.el-input__inner {
 }
 .avatar-padding {
   padding-right: 50%;
+}
+div /deep/ .el-date-editor.el-input {
+  width: 200px;
 }
 </style>

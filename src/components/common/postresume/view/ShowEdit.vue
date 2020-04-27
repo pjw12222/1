@@ -132,6 +132,8 @@ import Header from "../Header.vue";
 import htmlToPdf from "../../../../utils/htmlToPdf";
 import { async } from "q";
 import { postRequest } from "../../../../utils/api";
+import { getRequest } from "../../../../utils/api";
+import { concatGetUrl } from "../../../../utils/utils";
 
 export default {
   components: {
@@ -140,7 +142,11 @@ export default {
   data() {
     return {
       content: "",
-      value: ""
+      value: "",
+      from: "",
+      rid: null,
+      resumes: {},
+      stateResume: {}
     };
   },
   methods: {
@@ -163,8 +169,14 @@ export default {
           });
         } else {
           _this.loading = true;
+          this.content.title = value;
+          this.content.id = this.rid;
+          this.content.userId = localStorage.getItem("userId");
           console.log(JSON.stringify(this.content));
-          postRequest("/resume/uploadResume/", JSON.stringify(this.content)).then(
+          postRequest(
+            "/resume/uploadResume/",
+            JSON.stringify(this.content)
+          ).then(
             resp => {
               if (resp.status == 200) {
                 _this.$message({
@@ -174,8 +186,8 @@ export default {
                 });
                 if (localStorage.getItem("type") == "普通用户") {
                   _this.$router.replace("/home");
-                }else{
-                  _this.$router.replace("/adminhome")
+                } else {
+                  _this.$router.replace("/adminhome");
                 }
               }
             },
@@ -210,6 +222,49 @@ export default {
     }
   },
   created() {
+    var from = this.$route.query.from;
+    this.from = from;
+    this.rid = this.$route.query.rid;
+    let _this = this;
+    if (from != null && from != "" && from != undefined) {
+      let params = {
+        uid: localStorage.getItem("userId"),
+        resumeId: this.rid
+      };
+      let url = "/resume/queryResumeByUser";
+      url = concatGetUrl(params, url);
+      getRequest(url)
+        .then(
+          resp => {
+            _this.loading = false;
+            if (resp.status == 200) {
+              _this.resumes = resp.data[0];
+              console.log(_this.resumes);
+              _this.stateResume.skillMsg = _this.resumes.skills;
+              _this.stateResume.baseMsg = JSON.parse(_this.resumes.baseMsg);
+              _this.stateResume.educationMsg = JSON.parse(
+                _this.resumes.schoolWork
+              );
+              _this.stateResume.internMsg = JSON.parse(_this.resumes.objective);
+              _this.stateResume.projectMsg = JSON.parse(
+                _this.resumes.experience
+              );
+              _this.$store.commit("savaAllMsg", this.stateResume);
+            }
+          },
+          resp => {
+            _this.loading = false;
+            if (resp.response.status == 403) {
+              _this.$message({ type: "error", message: resp.response.data });
+            }
+          }
+        )
+        .catch(resp => {
+          //压根没见到服务器
+          _this.loading = false;
+          _this.$message({ type: "error", message: "数据加载失败!" });
+        });
+    }
     this.fetchData();
   }
 };
